@@ -49,22 +49,30 @@ function get_token()
     -- require Authorization request header
     local auth_header = ngx.req.get_headers()[authHeader]
 
-    if auth_header == nil then
-        ngx.log(ngx.WARN, "No Authorization header")
-        ngx.exit(ngx.HTTP_UNAUTHORIZED)
-    end
-
-    if (logToken ~= false) then
-        ngx.log(ngx.INFO, "Authorization: " .. auth_header)
-    end
-
-    -- require Bearer token
     local token;
-    if authTokenPrefix ~= nil and authTokenPrefix ~= "" then
-        local _
-        _, _, token = string.find(auth_header, authTokenPrefix .. "%s+(.+)")
-    else
-        token = auth_header
+
+    if auth_header == nil then
+	token = ngx.var.arg_access_token
+	if token == nil then
+            ngx.log(ngx.WARN, "No Authorization header")
+            ngx.exit(ngx.HTTP_UNAUTHORIZED)
+        end
+    end
+
+    if token == nil then
+        
+        if (logToken ~= false) then
+            ngx.log(ngx.INFO, "Authorization: " .. auth_header)
+        end
+
+        -- require Bearer token
+        if authTokenPrefix ~= nil and authTokenPrefix ~= "" then
+            local _
+            _, _, token = string.find(auth_header, authTokenPrefix .. "%s+(.+)")
+        else
+            token = auth_header
+        end
+
     end
 
     if token == nil then
